@@ -29,10 +29,14 @@ class WithdrawalController extends APIController
     $myBalance = floatval(app($this->ledgerClass)->retrievePersonal($data['account_id'], $data['account_code'], $data['currency']));
     if($myBalance < $amount){
       $this->response['error'] = 'You have insufficient balance. Your current balance is '.$data['currency'].' '.$myBalance.' balance.';
-    }else if($data['stage'] == 1){
+      return $this->response();
+    }
+    if($data['stage'] == 1){
       app($this->notificationSettingClass)->generateOtpById($data['account_id']);
       $this->response['data'] = true;
-    }else if($data['stage'] == 2){
+      return $this->response();
+    }
+    if($data['stage'] == 2){
       $notification = app($this->notificationSettingClass)->getByAccountIdAndCode($data['account_id'], $data['otp']);
       if($notification == null){
         $this->response['error'] = 'Invalid Code, please try again!';
@@ -45,8 +49,8 @@ class WithdrawalController extends APIController
       if($this->response['data'] > 0){
         // send email here
       }
+      return $this->response();
     }
-    return $this->response();
   }
 
    public function retrieveRequests(Request $request){
