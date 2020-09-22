@@ -70,6 +70,27 @@ class WithdrawalController extends APIController
       return $this->response();
     }
 
+  public function update(Request $request)
+  {
+    $data = $request->all();
+    $withdrawInfo = Withdrawal::select('charge')->where("code", $data['code'])->get();
+    if (sizeof($withdrawInfo) > 0){
+      $ledgerData = array();
+      $ledgerData['account_id'] = $data['account_id'];
+      $ledgerData['account_code'] = $data['account_code'];
+      $ledgerData['description'] = 'charges';
+      $ledgerData['currency'] = $data['currency'];
+      $ledgerData['amount'] = $withdrawInfo['charge'];
+      $ledgerData['payment_payload'] = "withdrawal";
+      $ledgerData['payment_payload_value'] = $data['code'];
+      $test = app('Increment\Finance\Http\LedgerController')->addEntry($ledgerData);
+    }
+    $updateInfo = Withdrawal::where('code', $data['code'])
+                            ->update(['status' => $data['status']]);
+    return $updateInfo;
+  }
+
+
   public function generateCode(){
     $code = 'wid_'.substr(str_shuffle($this->codeSource), 0, 60);
     $codeExist = Withdrawal::where('code', '=', $code)->get();

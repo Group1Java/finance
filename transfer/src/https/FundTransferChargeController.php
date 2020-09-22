@@ -27,7 +27,7 @@ class FundTransferChargeController extends APIController
         $data['code'] = $this->generateCode();
         $this->model = new FundTransferCharge();
         $this->insertDB($data);
-        $keyname = "deliveryfee_".$request['scope'];
+        $keyname = "fundtransfer".$request['scope'];
         $lifespan = Carbon::now()->addMinutes(3600);
         Cache::add($keyname, $data, $lifespan);
         return $this->response();
