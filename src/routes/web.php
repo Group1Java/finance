@@ -31,4 +31,5 @@ $controller = 'Increment\Finance\Http\WithdrawalController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve', $controller."retrieve");
 Route::post($route.'retrieve_requests', $controller."retrieveRequests");
+Route::post($route.'retrieve_personal', $controller."retrievePersonal");
 Route::post($route.'update', $controller."update");
