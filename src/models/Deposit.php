@@ -8,5 +8,5 @@ use App\APIModel;
 class Deposit extends APIModel
 {
     protected $table = 'deposits';
-    protected $fillable = ['code', 'account_id', 'account_code', 'currency', 'amount', 'payload', 'payload_value'];
+    protected $fillable = ['code', 'account_id', 'account_code', 'currency', 'amount', 'payload', 'payload_value', 'status'];
 }

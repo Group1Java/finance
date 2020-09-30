@@ -39,4 +39,5 @@ $route = env('PACKAGE_ROUTE', '').'/deposits/';
 $controller = 'Increment\Finance\Http\DepositController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve', $controller."retrieve");
+Route::post($route.'retrieve_requests', $controller."retrieveRequests");
 Route::post($route.'update', $controller."update");
