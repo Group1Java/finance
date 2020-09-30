@@ -40,7 +40,7 @@ class DepositController extends APIController
         $i = 0;
         foreach ($result as $key) {
           $this->response['data'][$i]['name'] = $this->retrieveNameOnly($key['account_id']);
-          $this->response['data'][$i]['date_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y H:i');
+          $this->response['data'][$i]['date_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y H:i A');
           $i++;
         }
       }
