@@ -44,7 +44,7 @@ class DepositController extends APIController
           $i++;
         }
       }
-      $this->response['size'] = Withdrawal::count();
+      $this->response['size'] = Deposit::count();
       return $this->response();
     }
 
