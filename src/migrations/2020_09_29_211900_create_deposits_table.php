@@ -19,13 +19,14 @@ class CreateDepositsTable extends Migration
             $table->bigInteger('account_id');
             $table->string('account_code');
             $table->string('currency');
-            $table->double('amount',8,2);
+            $table->double('amount', 8, 2);
             $table->string('payload');
             $table->string('payload_value');
             $table->longText('notes')->nullable();
             $table->longText('tags')->nullable();
             $table->longText('files')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

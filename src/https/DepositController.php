@@ -22,7 +22,7 @@ class DepositController extends APIController
     }
     
     public function generateCode(){
-      $code = 'led_'.substr(str_shuffle($this->codeSource), 0, 60);
+      $code = 'dep_'.substr(str_shuffle($this->codeSource), 0, 60);
       $codeExist = Deposit::where('code', '=', $code)->get();
       if(sizeof($codeExist) > 0){
         $this->generateCode();
