@@ -3,8 +3,10 @@
 namespace Increment\Finance\Transfer\Http;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\APIController;
 use Increment\Finance\Transfer\Models\FundTransferCharge;
+use Carbon\Carbon;
 
 class FundTransferChargeController extends APIController
 {
@@ -27,21 +29,25 @@ class FundTransferChargeController extends APIController
         $data['code'] = $this->generateCode();
         $this->model = new FundTransferCharge();
         $this->insertDB($data);
-        $keyname = "fundtransfer".$request['scope'];
-        $lifespan = Carbon::now()->addMinutes(3600);
-        Cache::add($keyname, $data, $lifespan);
         return $this->response();
     }
 
     public function retrieve(Request $request)
     {
       $this->rawRequest = $request;
-      if($this->checkAuthenticatedUser() == false){
-        return $this->response();
+      $data = $request->all();
+      $this->model = new FundTransferCharges();
+      if (Cache::has('fundtransfer'.$request['scope'])){
+        return Cache::get('fundtransfer'.$request['scope']);
+      }else{
+        $this->retrieveDB($data);
+        $lifespan = Carbon::now()->addMinutes(3600);
+        $keyname = "fundtransfer".$request['scope'];
+        $charges = FundTransferCharge::where('code', '=', $data['code'])->get();
+        if (sizeof($charges)>0){
+          Cache::add($keyname, $charges, $lifespan);
+          return $this->response();
+        }
       }
-  
-      $this->retrieveDB($request->all());
-      return $this->response();
     }
-    
 }
