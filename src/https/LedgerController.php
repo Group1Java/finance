@@ -65,6 +65,71 @@ class LedgerController extends APIController
       return $this->response();
     }
 
+
+    public function transfer(Request $request){
+      $data = $request->all();
+      $amount = floatval($data['amount']));
+      // check account if exist
+      // check if balance is sufficient
+      // send otp on first request
+      // verify otp on confirmation
+      $myBalance = floatval(app($this->ledgerClass)->retrievePersonal($data['from_account_id'], $data['from_account_id'], $data['currency']));
+      if($myBalance < $amount){
+        $this->response['error'] = 'You have insufficient balance. Your current balance is '.$data['currency'].' '.$myBalance.' balance.';
+        return $this->response();
+      }
+      if($data['stage'] == 1){
+        app($this->notificationSettingClass)->generateOtpById($data['from_account_id']);
+        $this->response['data'] = true;
+        return $this->response();
+      }
+      if($data['stage'] == 2){
+        $notification = app($this->notificationSettingClass)->getByAccountIdAndCode($data['from_account_id'], $data['otp']);
+
+        if($notification == null){
+          $this->response['error'] = 'Invalid Code, please try again!';
+          return $this->response();
+        }
+
+        $entry = [];
+        $entry[] = array(
+          "payment_payload" => $data["payment_payload"],
+          "payment_payload_value" => $data["payment_payload"],
+          "payment_payload_value" => $data["payment_payload_value"],
+          "code" => $this->generateCode(),
+          "account_id" => $data["account_id"],
+          "account_code" => $data["account_code"],
+          "description" => $data["description"],
+          "currency" => $data["currency"],
+          "amount" => $amount
+        );
+
+        if($data['type'] == 'AUTOMATIC'){
+          $entry[] = array(
+            "payment_payload" => $data["payment_payload"],
+            "payment_payload_value" => $data["payment_payload_value"],
+            "code" => $this->generateCode(),
+            "account_id" => $data["from_account_id"],
+            "account_code" => $data["from_account_id"],
+            "description" => $data['from_description'],
+            "currency" => $data["currency"],
+            "amount" => $amount * (-1)
+          );
+        }
+
+        $this->model = new Ledger()
+        
+        $this->insertDB($entry);
+
+        if($this->response['data'] > 0){
+          // send email here
+        }
+        
+        return $this->response();
+      }
+      return $this->response();
+    }
+
     public function history(Request $request){
       $data = $request->all();
       $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at')
