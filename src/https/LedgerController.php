@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 class LedgerController extends APIController
 {
-    //
+    public $notificationSettingClass = 'App\Http\Controllers\NotificationSettingController';
+
     function __construct(){
       $this->model = new Ledger();
       if($this->checkAuthenticatedUser() == false){
@@ -68,19 +69,22 @@ class LedgerController extends APIController
 
     public function transfer(Request $request){
       $data = $request->all();
-      $amount = floatval($data['amount']));
+      $amount = floatval($data['amount']);
+      $this->response['error'] = null;
       // check account if exist
       // check if balance is sufficient
       // send otp on first request
       // verify otp on confirmation
-      $myBalance = floatval(app($this->ledgerClass)->retrievePersonal($data['from_account_id'], $data['from_account_id'], $data['currency']));
+      $myBalance = floatval($this->retrievePersonal($data['from_account_id'], $data['from_account_code'], $data['currency']));
       if($myBalance < $amount){
+        $this->response['stage'] = 1;
         $this->response['error'] = 'You have insufficient balance. Your current balance is '.$data['currency'].' '.$myBalance.' balance.';
         return $this->response();
       }
       if($data['stage'] == 1){
         app($this->notificationSettingClass)->generateOtpById($data['from_account_id']);
         $this->response['data'] = true;
+        $this->response['stage'] = 2;
         return $this->response();
       }
       if($data['stage'] == 2){
@@ -117,12 +121,13 @@ class LedgerController extends APIController
           );
         }
 
-        $this->model = new Ledger()
+        $this->model = new Ledger();
         
         $this->insertDB($entry);
 
         if($this->response['data'] > 0){
           // send email here
+          $this->response['stage'] = 3;
         }
         
         return $this->response();
