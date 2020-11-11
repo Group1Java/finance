@@ -105,7 +105,8 @@ class LedgerController extends APIController
           "account_code" => $data["account_code"],
           "description" => $data["description"],
           "currency" => $data["currency"],
-          "amount" => $amount
+          "amount" => $amount,
+          'created_at' => Carbon::now()
         );
 
         if($data['type'] == 'AUTOMATIC'){
@@ -114,16 +115,18 @@ class LedgerController extends APIController
             "payment_payload_value" => $data["payment_payload_value"],
             "code" => $this->generateCode(),
             "account_id" => $data["from_account_id"],
-            "account_code" => $data["from_account_id"],
+            "account_code" => $data["from_account_code"],
             "description" => $data['from_description'],
             "currency" => $data["currency"],
-            "amount" => $amount * (-1)
+            "amount" => $amount * (-1),
+            'created_at' => Carbon::now()
           );
         }
 
-        $this->model = new Ledger();
+        // $this->model = new Ledger();
         
-        $this->insertDB($entry);
+        // $this->insertDB($entry);
+        $this->response['data'] = Ledger::insert($entry);
 
         if($this->response['data'] > 0){
           // send email here
