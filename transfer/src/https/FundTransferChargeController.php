@@ -36,7 +36,7 @@ class FundTransferChargeController extends APIController
     {
       $this->rawRequest = $request;
       $data = $request->all();
-      $this->model = new FundTransferCharges();
+      $this->model = new FundTransferCharge();
       if (Cache::has('fundtransfer'.$request['scope'])){
         return Cache::get('fundtransfer'.$request['scope']);
       }else{
