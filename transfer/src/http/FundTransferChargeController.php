@@ -12,6 +12,9 @@ class FundTransferChargeController extends APIController
 {
     function __construct(){
         $this->model = new FundTransferCharge();
+        $this->notRequired = array(
+          'effective_date', 'scope'
+        );
     }
 
     public function generateCode(){
@@ -25,12 +28,42 @@ class FundTransferChargeController extends APIController
     }
 
     public function create(Request $request){
+        // dd($request);
         $data = $request->all();
-        $data['code'] = $this->generateCode();
         $this->model = new FundTransferCharge();
-        $this->insertDB($data);
+        $code = $this->generateCode();
+        $params = array(
+          'code' => $code,
+          'currency' => $data['currency'],
+          'charge' => $data['charge'],
+          'minimum_amount' => $data['min_amount'],
+          'maximum_amount' => $data['max_amount'],
+          'destination' => $data['type'],
+        );
+        $this->insertDB($params);
         return $this->response();
     }
+
+    public function retrieveAll(Request $request){
+      $data = $request->all();
+      // if (Cache::has('fundtransfer'.$request['scope'])){
+      //   return Cache::get('fundtransfer'.$request['scope']);
+      // }else{
+        $this->retrieveDB($data);
+        $result = $this->response['data'];
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i]['type'] = $key['destination'];
+          $result[$i]['max_amount'] = $key['maximum_amount'];
+          $result[$i]['min_amount'] = $key['minimum_amount'];
+          $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
+          $i++;
+        }
+        $this->response['data'] = $result;
+        return $this->response(); 
+      // }
+    }
+
 
     public function retrieve(Request $request)
     {
@@ -50,4 +83,6 @@ class FundTransferChargeController extends APIController
         }
       }
     }
+
+
 }
