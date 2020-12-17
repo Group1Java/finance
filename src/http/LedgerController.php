@@ -197,4 +197,15 @@ class LedgerController extends APIController
       $total = doubleval($ledger);
       return doubleval($total);
     }
+
+    public function summaryLedger(Request $request){
+      $data = $request->all();
+      $ledger = DB::table("ledgers")
+      ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'payment_payload_value', 'created_at')
+      ->orderBy('created_at', 'desc')
+      ->offset($data['offset'])
+      ->limit($data['limit'])
+      ->get();
+      return $ledger;
+    }
 }
