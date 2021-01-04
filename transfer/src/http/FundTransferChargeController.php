@@ -36,9 +36,11 @@ class FundTransferChargeController extends APIController
           'code' => $code,
           'currency' => $data['currency'],
           'charge' => $data['charge'],
-          'minimum_amount' => $data['min_amount'],
-          'maximum_amount' => $data['max_amount'],
-          'destination' => $data['type'],
+          'minimum_amount' => $data['minimum_amount'],
+          'maximum_amount' => $data['maximum_amount'],
+          'destination' => $data['destination'],
+          'scope' => $data['scope'],
+          'effective_date' => $data['effective_date']
         );
         $this->insertDB($params);
         return $this->response();

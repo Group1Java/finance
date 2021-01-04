@@ -200,8 +200,8 @@ class LedgerController extends APIController
 
     public function summaryLedger(Request $request){
       $data = $request->all();
-      $ledger = Ledger::select("ledgers.*")
-      ->groupBy('created_at')
+      $ledger = DB::table("ledgers")
+      ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'payment_payload_value', 'created_at')
       ->orderBy('created_at', 'desc')
       ->offset($data['offset'])
       ->limit($data['limit'])
