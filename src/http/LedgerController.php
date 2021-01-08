@@ -218,7 +218,7 @@ class LedgerController extends APIController
     public function transactionHistory(Request $request){
       $data = $request->all();
       $transactions = Ledger::select("ledgers.*")
-      ->limit($data['limit'])
+      ->limit((isset($data['limit']) ? $data['limit'] : 0))
       ->groupBy('created_at', 'asc')
       ->orderBy('created_at', 'desc')
       ->get();
