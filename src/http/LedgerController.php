@@ -66,7 +66,6 @@ class LedgerController extends APIController
       return $this->response();
     }
 
-
     public function transfer(Request $request){
       $data = $request->all();
       $amount = floatval($data['amount']);
@@ -220,7 +219,6 @@ class LedgerController extends APIController
       $data = $request->all();
       $transactions = Ledger::select("ledgers.*")
       ->limit($data['limit'])
-      ->offset($data['offset'])
       ->groupBy('created_at', 'asc')
       ->orderBy('created_at', 'desc')
       ->get();
