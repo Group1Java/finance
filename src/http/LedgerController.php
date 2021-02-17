@@ -66,7 +66,6 @@ class LedgerController extends APIController
       return $this->response();
     }
 
-
     public function transfer(Request $request){
       $data = $request->all();
       $amount = floatval($data['amount']);
@@ -197,10 +196,11 @@ class LedgerController extends APIController
       $total = doubleval($ledger);
       return doubleval($total);
     }
-
+    
     public function summaryLedger(Request $request){
       $data = $request->all();
       $ledger = DB::table("ledgers")
+                ->where('account_id', '=', $data['account_id'])
                 ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'payment_payload_value', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->offset($data['offset'])
@@ -219,8 +219,7 @@ class LedgerController extends APIController
     public function transactionHistory(Request $request){
       $data = $request->all();
       $transactions = Ledger::select("ledgers.*")
-      ->limit($data['limit'])
-      ->offset($data['offset'])
+      ->limit((isset($data['limit']) ? $data['limit'] : 0))
       ->groupBy('created_at', 'asc')
       ->orderBy('created_at', 'desc')
       ->get();
