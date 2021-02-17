@@ -116,7 +116,7 @@ class WithdrawalController extends APIController
   }
 
   public function getTotalByParams($accountId, $currency){
-    $result = Deposit::where('account_id', '=', $accountId)->where('currency', '=', $currency)->where('status', '!', 'completed')->sum('amount');
+    $result = Withdrawal::where('account_id', '=', $accountId)->where('currency', '=', $currency)->where('status', '!', 'completed')->sum('amount');
     return doubleval($result);
   }
 
