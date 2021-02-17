@@ -39,8 +39,9 @@ class LedgerController extends APIController
         $hold = $this->getPendingAmount($data['account_id'], $key);
         $currency = array(
           'currency'  => $key,
-          'balance'   => floatval($sum - $hold),
-          'on_hold'   => $sum
+          'available_balance'   => floatval($sum - $hold),
+          'current_balance'     => $sum,
+          'balance'             => floatval($sum - $hold),
         );
         $result[] = $currency;
       }
@@ -50,7 +51,7 @@ class LedgerController extends APIController
 
     public function getPendingAmount($accountId, $currency){
       $total = 0;
-      
+
       if(env('REQUEST') == true){
         $total += app('App\Http\Controllers\RequestMoneyController')->getTotalActiveRequest($accountId, $currency);
       }
