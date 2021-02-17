@@ -36,13 +36,18 @@ class LedgerController extends APIController
       $result = array();
       foreach ($this->currency as $key) {
         $currency = array(
-          'currency' => $key,
-          'balance'   => $this->getSum($data['account_id'], $data['account_code'], $key)
+          'currency'  => $key,
+          'balance'   => $this->getSum($data['account_id'], $data['account_code'], $key),
+          'on_hold'   => $this->getPendingAmount($data['account_id'], $key)
         );
         $result[] = $currency;
       }
       $this->response['data'] = $result;
       return $this->response();
+    }
+
+    public function getPendingAmount($id, $key){
+      return 0;
     }
 
     public function getSum($accountId, $accountCode, $currency){
