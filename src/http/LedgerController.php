@@ -35,10 +35,12 @@ class LedgerController extends APIController
       $data = $request->all();
       $result = array();
       foreach ($this->currency as $key) {
+        $sum = $this->getSum($data['account_id'], $data['account_code'], $key);
+        $hold = $this->getPendingAmount($data['account_id'], $key);
         $currency = array(
           'currency'  => $key,
-          'balance'   => $this->getSum($data['account_id'], $data['account_code'], $key),
-          'on_hold'   => $this->getPendingAmount($data['account_id'], $key)
+          'balance'   => floatval($sum - $hold),
+          'on_hold'   => $sum
         );
         $result[] = $currency;
       }
