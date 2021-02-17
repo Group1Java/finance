@@ -56,6 +56,14 @@ class LedgerController extends APIController
         $total += app('App\Http\Controllers\RequestMoneyController')->getTotalActiveRequest($accountId, $currency);
       }
 
+      if(env('DEPOSIT') == true){
+        $total += app('Increment\Finance\Http\DepositController')->getTotalByParams($accountId, $currency);
+      }
+
+      if(env('WITHDRAWAL') == true){
+        $total += app('Increment\Finance\Http\WithdrawalController')->getTotalByParams($accountId, $currency);
+      }
+
       return $total;
     }
 

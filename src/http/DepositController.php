@@ -48,6 +48,12 @@ class DepositController extends APIController
       return $this->response();
     }
 
+    public function getTotalByParams($accountId, $currency){
+      $result = Deposit::where('account_id', '=', $accountId)->where('currency', '=', $currency)->where('status', '!', 'completed')->sum('amount');
+      return doubleval($result);
+    }
+
+
     public function create(Request $request){
         $data = $request->all();
         $data['code'] = $this->generateCode();

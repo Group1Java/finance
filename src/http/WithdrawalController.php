@@ -115,6 +115,10 @@ class WithdrawalController extends APIController
     return $updateInfo;
   }
 
+  public function getTotalByParams($accountId, $currency){
+    $result = Deposit::where('account_id', '=', $accountId)->where('currency', '=', $currency)->where('status', '!', 'completed')->sum('amount');
+    return doubleval($result);
+  }
 
   public function generateCode(){
     $code = 'wid_'.substr(str_shuffle($this->codeSource), 0, 60);
