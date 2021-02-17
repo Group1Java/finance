@@ -50,11 +50,12 @@ class LedgerController extends APIController
 
     public function getPendingAmount($accountId, $currency){
       $total = 0;
+      
       if(env('REQUEST') == true){
         $total += app('App\Http\Controllers\RequestMoneyController')->getTotalActiveRequest($accountId, $currency);
       }
 
-      return 0;
+      return $total;
     }
 
     public function getSum($accountId, $accountCode, $currency){
