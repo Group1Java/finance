@@ -71,7 +71,6 @@ class LedgerController extends APIController
       return $this->response();
     }
 
-
     public function transfer(Request $request){
       $data = $request->all();
       $amount = floatval($data['amount']);
@@ -201,5 +200,34 @@ class LedgerController extends APIController
       $ledger = Ledger::where('account_id', '=', $accountId)->where('account_code', '=', $accountCode)->where('currency', '=', $currency)->sum('amount');
       $total = doubleval($ledger);
       return doubleval($total);
+    }
+    
+    public function summaryLedger(Request $request){
+      $data = $request->all();
+      $ledger = DB::table("ledgers")
+                ->where('account_id', '=', $data['account_id'])
+                ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'payment_payload_value', 'created_at')
+                ->orderBy('created_at', 'desc')
+                ->offset($data['offset'])
+                ->limit($data['limit'])
+                ->get();
+      $i = 0;
+      foreach ($ledger as $key) {
+        $ledger[$i]->created_at_human = Carbon::createFromFormat('Y-m-d H:i:s', $ledger[$i]->created_at)->copy()->tz($this->response['timezone'])->format('F j, Y H:i A');
+        $i++;
+      }
+      
+      $this->response['data'] = $ledger;
+      return $this->response();
+    }
+
+    public function transactionHistory(Request $request){
+      $data = $request->all();
+      $transactions = Ledger::select("ledgers.*")
+      ->limit((isset($data['limit']) ? $data['limit'] : 0))
+      ->groupBy('created_at', 'asc')
+      ->orderBy('created_at', 'desc')
+      ->get();
+      return $transactions;
     }
 }

@@ -3,9 +3,12 @@
 // Ledger Controller
 $route = env('PACKAGE_ROUTE', '').'/ledger/';
 $controller = 'Increment\Finance\Http\LedgerController@';
+Route::post($route.'summary_ledger', $controller."summaryLedger");
 Route::post($route.'history', $controller."history");
 Route::post($route.'summary', $controller."summary");
 Route::post($route.'transfer', $controller."transfer");
+Route::post($route.'transaction_history', $controller."transactionHistory");
+
 
 
 // Cash Payment Controller
