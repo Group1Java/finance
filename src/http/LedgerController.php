@@ -12,6 +12,8 @@ use Carbon\Carbon;
 class LedgerController extends APIController
 {
     public $notificationSettingClass = 'App\Http\Controllers\NotificationSettingController';
+    public $accountClass = 'Increment\Account\Http\AccountController';
+    public $notificationClass = 'Increment\Common\Notification\Http\NotificationController';
 
     function __construct(){
       $this->model = new Ledger();
@@ -35,15 +37,22 @@ class LedgerController extends APIController
       $data = $request->all();
       $result = array();
       foreach ($this->currency as $key) {
-        $sum = $this->getSum($data['account_id'], $data['account_code'], $key);
-        $hold = $this->getPendingAmount($data['account_id'], $key);
-        $currency = array(
-          'currency'  => $key,
-          'available_balance'   => floatval($sum - $hold),
-          'current_balance'     => $sum,
-          'balance'             => floatval($sum - $hold),
-        );
-        $result[] = $currency;
+        $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
+        if($account == null){
+          $this->response['error'] = 'Invalid Access';
+          $this->response['data'] = null;
+          return $this->response();
+        }else{
+          $sum = $this->getSum($account['id'], $account['code'], $key);
+          $hold = $this->getPendingAmount($account['id'], $key);
+          $currency = array(
+            'currency'  => $key,
+            'available_balance'   => floatval($sum - $hold),
+            'current_balance'     => $sum,
+            'balance'             => floatval($sum - $hold),
+          );
+          $result[] = $currency;
+        }
       }
       $this->response['data'] = $result;
       return $this->response();
@@ -86,6 +95,58 @@ class LedgerController extends APIController
       $this->model = new Ledger();
       $this->insertDB($entry);
       return $this->response();
+    }
+
+    public function verify($data){
+      $result = Ledger::where('account_id', '=', $data['account_id'])
+        ->where('account_code', '=', $data['account_code'])
+        ->where('description', '=', $data['description'])
+        ->where('amount', '=', $data['amount'])
+        ->where('currency', '=', $data['currency'])
+        ->where('payment_payload', '=', $data['payment_payload'])
+        ->where('payment_payload_value', '=', $data['payment_payload_value'])
+        ->get();
+      return sizeof($result) > 0 ? $result : null;
+    }
+
+    public function addNewEntry($data){
+      $result = $this->verify($data);
+      if($result){
+        return array(
+          'error' => 'Duplicate Entry',
+          'data'  => null
+        );
+      }else{
+        $amount = $data['amount'];
+        $entry = array();
+        $entry["payment_payload"] = $data["payment_payload"];
+        $entry["payment_payload_value"] = $data["payment_payload_value"];
+        $entry["code"] = $this->generateCode();
+        $entry["account_id"] = $data["account_id"];
+        $entry["account_code"] = $data["account_code"];
+        $entry["description"] = $data["description"];
+        $entry["currency"] = $data["currency"];
+        $entry["amount"] = $amount;
+        $this->model = new Ledger();
+        $this->insertDB($entry);
+
+        if($this->response['data'] > 0){
+          // run jobs here
+          $parameter = array(
+            'from'    => $data['from'],
+            'to'      => $data['account_id'],
+            'payload' => $data["description"],
+            'payload_value' => $data['request_id'],
+            'route'   => 'ledger/'.$data["payment_payload_value"],
+            'created_at'  => Carbon::now()
+          );
+          app($this->notificationClass)->createByParams($parameter);
+        }
+        return array(
+          'data' => $this->response['data'],
+          'error' => null
+        );
+      }
     }
 
     public function transfer(Request $request){
@@ -161,21 +222,29 @@ class LedgerController extends APIController
 
     public function history(Request $request){
       $data = $request->all();
-      $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at')
-                ->where('account_id', '=', $data['account_id'])
-                ->where('account_code', '=', $data['account_code'])
-                ->offset(isset($data['offset']) ? $data['offset'] : 0)
-                ->limit(isset($data['limit']) ? $data['limit'] : 5)
-                ->orderBy('created_at', 'desc')
-                ->get();
-      $i = 0;
-      foreach ($result as $key) {
-        $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y H:i A');
-        $i++;
-      }
+      $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
+      if($account == null){
+        $this->response['error'] = 'Invalid Access';
+        $this->response['data'] = null;
+        return $this->response();
+      }else{
+        $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at')
+          ->where('account_id', '=', $account['id'])
+          ->where('account_code', '=', $account['code'])
+          ->offset(isset($data['offset']) ? $data['offset'] : 0)
+          ->limit(isset($data['limit']) ? $data['limit'] : 5)
+          ->orderBy('created_at', 'desc')
+          ->get();
+        $i = 0;
 
-      $this->response['data'] = $result;
-      return $this->response();
+        foreach ($result as $key) {
+          $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y H:i A');
+          $i++;
+        }
+
+        $this->response['data'] = $result;
+        return $this->response();
+      }
     }
 
     public function retrieve(Request $request){
