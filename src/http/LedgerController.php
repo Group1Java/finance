@@ -228,7 +228,7 @@ class LedgerController extends APIController
         $this->response['data'] = null;
         return $this->response();
       }else{
-        $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at')
+        $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at', 'payment_payload_value')
           ->where('account_id', '=', $account['id'])
           ->where('account_code', '=', $account['code'])
           ->offset(isset($data['offset']) ? $data['offset'] : 0)
