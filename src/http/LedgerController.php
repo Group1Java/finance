@@ -105,13 +105,27 @@ class LedgerController extends APIController
         ->where('currency', '=', $data['currency'])
         ->where('payment_payload', '=', $data['payment_payload'])
         ->where('payment_payload_value', '=', $data['payment_payload_value'])
+        ->orderBy('created_at', 'desc')
+        ->limit(1)
         ->get();
-      return sizeof($result) > 0 ? $result : null;
+      if(sizeof($result) > 0){
+        $currentDate = Carbon::now();
+        $createdAt = Carbon::createFromFormat('Y-m-d H:i:s', $result[0]['created_at']);
+
+        $minutes = $currentDate->diffInMinutes($createdAt);
+        if($minutes >= 30){
+          return null;
+        }else{
+          return $result[0];
+        }
+      }else{
+        return null;
+      }
     }
 
     public function addNewEntry($data){
-      $result = $this->verify($data);
-      if($result){
+      $duplicate = $this->verify($data);
+      if($duplicate){
         return array(
           'error' => 'Duplicate Entry',
           'data'  => null
@@ -180,7 +194,6 @@ class LedgerController extends APIController
         $entry = [];
         $entry[] = array(
           "payment_payload" => $data["payment_payload"],
-          "payment_payload_value" => $data["payment_payload"],
           "payment_payload_value" => $data["payment_payload_value"],
           "code" => $this->generateCode(),
           "account_id" => $data["account_id"],
@@ -315,5 +328,153 @@ class LedgerController extends APIController
       ->orderBy('created_at', 'desc')
       ->get();
       return $transactions;
+    }
+
+    public function directTransfer(Request $request){
+      $data = $request->all();
+
+      $from = $data['from'];
+      $to = $data['to'];
+      $amount = floatval($data['amount']);
+      $currency = $data['currency'];
+      $notes = $data['notes'];
+
+      $fromEmail = $from['email'];
+      $fromCode = $from['code'];
+
+      $toEmail = $to['email'];
+      $toCode = $to['code'];
+
+      if($fromEmail == null || $fromCode == null || $toEmail == null || $toCode == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Details';
+        return $this->response();
+      }
+
+      if($amount == null || ($amount & $amount <= 0) || $currency == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Details';
+        return $this->response();        
+      }
+
+      // from account details
+      $fromAccount = $this->retriveAccountDetailsByCode($fromCode);
+
+      if($fromAccount == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Sender Account was not found!';
+        return $this->response();       
+      }
+
+      if($fromAccount != null && $fromAccount['email'] != $fromEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Sender Account!';
+        return $this->response();       
+      }
+      
+      $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
+      
+      if($fromBalance < $amount){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Insufficient Balance!';
+        return $this->response();  
+      }
+
+
+      // to account details
+      $toAccount = $this->retriveAccountDetailsByCode($toCode);
+      if($toAccount == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Receiver Account was not found!';
+        return $this->response();       
+      }
+
+      if($toAccount != null && $toAccount['email'] != $toEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Receiver Account!';
+        return $this->response();       
+      }
+
+      $result = $this->addNewEntryDirectTransfer(array(
+        "payment_payload" => 'direct_transfer',
+        "payment_payload_value" => $toAccount['code'],
+        "code" => $this->generateCode(),
+        "account_id" => $fromAccount["id"],
+        "account_code" => $fromAccount["code"],
+        "description" => 'Direct Transfer'.($notes != null ? ':'.$notes : null),
+        "currency" => $currency,
+        "amount" => $amount * -1,
+        "from"   => $toAccount['id']
+      ));
+
+      if($result['error'] != null){
+        $this->response['error'] = $result['error'];
+        $this->response['data'] = $result['data'];
+        return $this->response();
+      }
+
+      $result = $this->addNewEntryDirectTransfer(array(
+        "payment_payload" => 'direct_transfer',
+        "payment_payload_value" => $fromAccount['code'],
+        "code" => $this->generateCode(),
+        "account_id" => $toAccount["id"],
+        "account_code" => $toAccount["code"],
+        "description" => 'Direct Transfer'.($notes != null ? ':'.$notes : null),
+        "currency" => $currency,
+        "amount" => $amount,
+        "from"   => $fromAccount['id']
+      ));
+
+      if($result['error'] != null){
+        $this->response['error'] = $result['error'];
+        $this->response['data'] = $result['data'];
+        return $this->response();
+      }
+
+      if($result['error'] == null){
+        $this->response['error'] = null;
+        $this->response['data'] = true;
+        return $this->response();
+      }
+    }
+
+    public function addNewEntryDirectTransfer($data){
+      $result = $this->verify($data);
+      if($result){
+        return array(
+          'error' => 'Duplicate Entry',
+          'data'  => null
+        );
+      }else{
+        $amount = $data['amount'];
+        $entry = array();
+        $entry["payment_payload"] = $data["payment_payload"];
+        $entry["payment_payload_value"] = $data["payment_payload_value"];
+        $entry["code"] = $this->generateCode();
+        $entry["account_id"] = $data["account_id"];
+        $entry["account_code"] = $data["account_code"];
+        $entry["description"] = $data["description"];
+        $entry["currency"] = $data["currency"];
+        $entry["amount"] = $amount;
+        $this->model = new Ledger();
+        $this->insertDB($entry);
+
+        if($this->response['data'] > 0){
+          // run jobs here
+          $parameter = array(
+            'from'    => $data['from'],
+            'to'      => $data['account_id'],
+            'payload' => $data["description"],
+            'payload_value' => $entry["code"],
+            'route'   => 'ledger/'.$entry["code"],
+            'created_at'  => Carbon::now()
+          );
+          app($this->notificationClass)->createByParams($parameter);
+        }
+        return array(
+          'data' => $this->response['data'],
+          'error' => null
+        );
+      }
     }
 }
