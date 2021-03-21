@@ -33,6 +33,48 @@ class LedgerController extends APIController
       }
     }
 
+    public function dashboard(Request $request){
+      $data = $request->all();
+      $result = array();
+      $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
+      if($account == null){
+        $this->response['error'] = 'Invalid Access';
+        $this->response['data'] = null;
+        return $this->response();
+      }
+      foreach ($this->currency as $key) {
+        $sum = $this->getSum($account['id'], $account['code'], $key);
+        $hold = $this->getPendingAmount($account['id'], $key);
+        $currency = array(
+          'currency'  => $key,
+          'available_balance'   => floatval($sum - $hold),
+          'current_balance'     => $sum,
+          'balance'             => floatval($sum - $hold),
+        );
+        $result[] = $currency;
+      }
+
+      $history = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at', 'payment_payload_value')
+        ->where('account_id', '=', $account['id'])
+        ->where('account_code', '=', $account['code'])
+        ->offset(0)
+        ->limit(3)
+        ->orderBy('created_at', 'desc')
+        ->get();
+      $i = 0;
+
+      foreach ($history as $key) {
+        $history[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $history[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
+        $i++;
+      }
+
+      $this->response['data'] = array(
+        'ledger' => $result,
+        'history' => $history
+      );
+      return $this->response();
+    }
+
     public function summary(Request $request){
       $data = $request->all();
       $result = array();

@@ -6,6 +6,7 @@ $controller = 'Increment\Finance\Http\LedgerController@';
 Route::post($route.'summary_ledger', $controller."summaryLedger");
 Route::post($route.'history', $controller."history");
 Route::post($route.'summary', $controller."summary");
+Route::post($route.'dashboard', $controller."dashboard");
 Route::post($route.'direct_transfer', $controller."directTransfer");
 Route::post($route.'transfer', $controller."transfer");
 Route::post($route.'transaction_history', $controller."transactionHistory");
