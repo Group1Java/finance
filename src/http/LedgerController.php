@@ -544,8 +544,8 @@ class LedgerController extends APIController
       app($this->firebaseController)->sendLocal(
         array(
           'data' => array(
-            'from'    => $fromAccount,
-            'to'      => $toAccount,
+            'from_account'    => $fromAccount,
+            'to_account'      => $toAccount,
             'amount'  => $amount,
             'currency' => $currency,
             'notes'   => $notes,
