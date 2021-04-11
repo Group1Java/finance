@@ -553,10 +553,10 @@ class LedgerController extends APIController
           ),
           'notification' => array(
             'title' => 'Payment Notification',
-            'body'  => 'Accept payments from '.$toEmail,
+            'body'  => 'Accept payments from '.$fromEmail,
             'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
           ),
-          'topic'   => env('TOPIC').'Payments-'.$fromAccount['id']
+          'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
         )
       );
       $this->response['data'] = true;
