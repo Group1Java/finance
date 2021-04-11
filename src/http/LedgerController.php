@@ -483,9 +483,9 @@ class LedgerController extends APIController
     public function acceptPaymentConfirmation(Request $request){
       $data = $request->all();
 
-      $from = $data['from'];
+      $from = $data['from_code'];
       $fromEmail = $data['from_email'];
-      $to = $data['to'];
+      $to = $data['to_code'];
       $toEmail = $data['to_email'];
       $amount = floatval($data['amount']);
       $currency = $data['currency'];
