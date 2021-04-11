@@ -552,8 +552,8 @@ class LedgerController extends APIController
             'topic'   => 'payments-'.$fromAccount['id']
           ),
           'notification' => array(
-            'title' =>,
-            'body'  =>,
+            'title' => 'Payment Notification',
+            'body'  => 'Accept payments from '.$toEmail,
             'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
           ),
           'topic'   => env('TOPIC').'Payments-'.$fromAccount['id']
