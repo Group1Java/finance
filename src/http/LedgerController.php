@@ -528,7 +528,7 @@ class LedgerController extends APIController
 
 
       // to account details
-      $toAccount = $this->retriveAccountDetailsByCode($toCode);
+      $toAccount = $this->retriveAccountDetailsByCode($to);
       if($toAccount == null){
         $this->response['data'] = null;
         $this->response['error'] = 'Receiver Account was not found!';
