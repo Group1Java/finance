@@ -490,6 +490,7 @@ class LedgerController extends APIController
       $amount = floatval($data['amount']);
       $currency = $data['currency'];
       $notes = $data['notes'];
+      $charge = $data['charge'];
 
       if($from == null || $to == null){
         $this->response['data'] = null;
