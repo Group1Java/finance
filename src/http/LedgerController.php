@@ -14,7 +14,7 @@ class LedgerController extends APIController
     public $notificationSettingClass = 'App\Http\Controllers\NotificationSettingController';
     public $accountClass = 'Increment\Account\Http\AccountController';
     public $notificationClass = 'Increment\Common\Notification\Http\NotificationController';
-
+    public $firebaseController = '\App\Http\Controllers\FirebaseController';
     function __construct(){
       $this->model = new Ledger();
       if($this->checkAuthenticatedUser() == false){
@@ -479,6 +479,91 @@ class LedgerController extends APIController
         return $this->response();
       }
     }
+
+    public function acceptPaymentConfirmation(Request $request){
+      $data = $request->all();
+
+      $from = $data['from'];
+      $fromEmail = $data['from_email'];
+      $to = $data['to'];
+      $toEmail = $data['to_email'];
+      $amount = floatval($data['amount']);
+      $currency = $data['currency'];
+      $notes = $data['notes'];
+
+      if($from == null || $to == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Details';
+        return $this->response();
+      }
+
+      if($amount == null || ($amount & $amount <= 0) || $currency == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Details';
+        return $this->response();        
+      }
+
+      // from account details
+      $fromAccount = $this->retriveAccountDetailsByCode($from);
+
+      if($fromAccount == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Sender Account was not found!';
+        return $this->response();       
+      }
+
+      if($fromAccount != null && $fromAccount['email'] != $fromEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Sender Account!';
+        return $this->response();       
+      }
+      
+      $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
+      
+      if($fromBalance < $amount){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Insufficient Balance!';
+        return $this->response();  
+      }
+
+
+      // to account details
+      $toAccount = $this->retriveAccountDetailsByCode($toCode);
+      if($toAccount == null){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Receiver Account was not found!';
+        return $this->response();       
+      }
+
+      if($toAccount != null && $toAccount['email'] != $toEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Receiver Account!';
+        return $this->response();       
+      }
+
+      app($this->firebaseController)->sendLocal(
+        array(
+          'data' => array(
+            'from'    => $fromAccount,
+            'to'      => $toAccount,
+            'amount'  => $amount,
+            'currency' => $currency,
+            'notes'   => $notes,
+            'topic'   => 'payments-'.$fromAccount['id']
+          ),
+          'notification' => array(
+            'title' =>,
+            'body'  =>,
+            'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
+          ),
+          'topic'   => env('TOPIC').'Payments-'.$fromAccount['id']
+        )
+      );
+      $this->response['data'] = true;
+      $this->response['error'] = null;
+      return $this->response();
+    }
+
 
     public function addNewEntryDirectTransfer($data){
       $result = $this->verify($data);
