@@ -490,7 +490,7 @@ class LedgerController extends APIController
       $amount = floatval($data['amount']);
       $currency = $data['currency'];
       $notes = $data['notes'];
-      $charge = $data['charge'];
+      $charge = isset($data['charge']) ? $data['charge'] : 0;
 
       if($from == null || $to == null){
         $this->response['data'] = null;
@@ -550,6 +550,7 @@ class LedgerController extends APIController
             'amount'  => $amount,
             'currency' => $currency,
             'notes'   => $notes,
+            'charge'  => $charge,
             'topic'   => 'payments-'.$toAccount['id']
           ),
           'notification' => array(
