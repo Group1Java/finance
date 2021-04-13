@@ -550,7 +550,7 @@ class LedgerController extends APIController
             'amount'  => $amount,
             'currency' => $currency,
             'notes'   => $notes,
-            'topic'   => 'payments-'.$fromAccount['id']
+            'topic'   => 'payments-'.$toAccount['id']
           ),
           'notification' => array(
             'title' => 'Payment Notification',
