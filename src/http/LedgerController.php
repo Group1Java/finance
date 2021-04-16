@@ -467,7 +467,7 @@ class LedgerController extends APIController
         "amount" => $amount,
         "from"   => $fromAccount['id']
       ));
-      if($payload['scan_payment']){
+      if($payload == 'scan_payment'){
         app($this->firebaseController)->sendLocal(
           array(
             'data' => array(
