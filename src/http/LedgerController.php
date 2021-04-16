@@ -478,14 +478,15 @@ class LedgerController extends APIController
               'currency' => $currency,
               'notes'   => $notes,
               'charge'  => $charge,
-              'topic'   => 'payments-'.$toAccount['id']
+              'transfer_status' => 'completed',
+              'topic'   => 'acceptedpayments-'.$toAccount['id']
             ),
             'notification' => array(
               'title' => 'Payment Notification',
               'body'  => 'Payment accepted by '.$fromAccount['email'],
               'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
             ),
-            'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
+            'topic'   => env('TOPIC').'AcceptedPayments-'.$toAccount['id']
           )
         );
       }
@@ -573,6 +574,7 @@ class LedgerController extends APIController
             'currency' => $currency,
             'notes'   => $notes,
             'charge'  => $charge,
+            'transfer_status' => 'requesting',
             'topic'   => 'payments-'.$toAccount['id']
           ),
           'notification' => array(
