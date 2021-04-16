@@ -381,6 +381,7 @@ class LedgerController extends APIController
       $currency = $data['currency'];
       $notes = $data['notes'];
       $payload = $data['payload'];
+      $charge = isset($data['charge']) ? $data['charge'] : 0;
 
       $fromEmail = $from['email'];
       $fromCode = $from['code'];
