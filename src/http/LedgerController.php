@@ -380,6 +380,7 @@ class LedgerController extends APIController
       $amount = floatval($data['amount']);
       $currency = $data['currency'];
       $notes = $data['notes'];
+      $payload = $data['payload'];
 
       $fromEmail = $from['email'];
       $fromCode = $from['code'];
@@ -466,7 +467,27 @@ class LedgerController extends APIController
         "amount" => $amount,
         "from"   => $fromAccount['id']
       ));
-
+      if($payload['scan_payment']){
+        app($this->firebaseController)->sendLocal(
+          array(
+            'data' => array(
+              'from_account'    => $fromAccount,
+              'to_account'      => $toAccount,
+              'amount'  => $amount,
+              'currency' => $currency,
+              'notes'   => $notes,
+              'charge'  => $charge,
+              'topic'   => 'payments-'.$toAccount['id']
+            ),
+            'notification' => array(
+              'title' => 'Payment Notification',
+              'body'  => 'Payment accepted by '.$fromAccount['email'],
+              'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
+            ),
+            'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
+          )
+        );
+      }
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
