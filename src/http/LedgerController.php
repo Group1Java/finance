@@ -454,9 +454,18 @@ class LedgerController extends APIController
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
-        return $this->response();
+        if($data['payload'] == "direct_transfer"){
+          $subject = 'Direct Transfer';
+          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject);
+          return $this->response();
+        }else {
+          $subject = "Fund Transfer";
+          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject);
+          return $this->response();
+        }
+        
       }
-
+      
       $result = $this->addNewEntryDirectTransfer(array(
         "payment_payload" => 'direct_transfer',
         "payment_payload_value" => $fromAccount['code'],
