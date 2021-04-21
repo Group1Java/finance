@@ -168,6 +168,7 @@ class LedgerController extends APIController
                 ->limit(isset($data['limit']) ? $data['limit'] : 5)
                 ->orderBy('created_at', 'desc')
                 ->get();
+      dd($result);
       $i = 0;
       foreach ($result as $key) {
         $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y H:i A');
