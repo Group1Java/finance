@@ -454,16 +454,12 @@ class LedgerController extends APIController
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
-        if($data['payload'] == "direct_transfer"){
+        if($payload == 'direct_transfer'){
           $subject = 'Direct Transfer';
-          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject);
-          return $this->response();
-        }else {
-          $subject = "Fund Transfer";
-          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject);
+          $mode = 'direct_transfer';
+          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject, $mode);
           return $this->response();
         }
-        
       }
       
       $result = $this->addNewEntryDirectTransfer(array(
@@ -502,7 +498,12 @@ class LedgerController extends APIController
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
-        return $this->response();
+        if($payload == 'scan_payment'){
+          $subject = 'Payment';
+          $mode = 'scan_payment';
+          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject, $mode);
+          return $this->response();
+        }
       }
 
       if($result['error'] == null){
