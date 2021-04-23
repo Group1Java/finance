@@ -440,7 +440,7 @@ class LedgerController extends APIController
       }
 
       $result = $this->addNewEntryDirectTransfer(array(
-        "payment_payload" => 'direct_transfer',
+        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
         "payment_payload_value" => $toAccount['code'],
         "code" => $this->generateCode(),
         "account_id" => $fromAccount["id"],
@@ -454,16 +454,11 @@ class LedgerController extends APIController
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
-        if($payload == 'direct_transfer'){
-          $subject = 'Direct Transfer';
-          $mode = 'direct_transfer';
-          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject, $mode);
-          return $this->response();
-        }
+        return $this->response();
       }
       
       $result = $this->addNewEntryDirectTransfer(array(
-        "payment_payload" => 'direct_transfer',
+        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
         "payment_payload_value" => $fromAccount['code'],
         "code" => $this->generateCode(),
         "account_id" => $toAccount["id"],
@@ -473,6 +468,7 @@ class LedgerController extends APIController
         "amount" => $amount,
         "from"   => $fromAccount['id']
       ));
+
       if($payload == 'scan_payment'){
         app($this->firebaseController)->sendLocal(
           array(
@@ -495,15 +491,11 @@ class LedgerController extends APIController
           )
         );
       }
+
       if($result['error'] != null){
         $this->response['error'] = $result['error'];
         $this->response['data'] = $result['data'];
-        if($payload == 'scan_payment'){
-          $subject = 'Payment';
-          $mode = 'scan_payment';
-          app('App\Http\Controllers\EmailController')->transfer_fund($fromAccount['id'], $data, $subject, $mode);
-          return $this->response();
-        }
+        return $this->response();
       }
 
       if($result['error'] == null){
@@ -623,6 +615,17 @@ class LedgerController extends APIController
         $this->insertDB($entry);
 
         if($this->response['data'] > 0){
+          $owner = $this->retriveAccountDetailsByCode($entry["account_code"]);
+          $receive = $this->retriveAccountDetailsByCode($entry["payment_payload_value"]);
+          if($entry['payment_payload'] == "direct_transfer"){
+            $subject = 'Transfer';
+            $mode = 'direct_transfer';
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+          }else{
+            $subject = 'Payment';
+            $mode = 'scan_payment';
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+          }
           // run jobs here
           $parameter = array(
             'from'    => $data['from'],
