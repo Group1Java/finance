@@ -470,26 +470,26 @@ class LedgerController extends APIController
       ));
 
       if($payload == 'scan_payment'){
-        // app($this->firebaseController)->sendLocal(
-        //   array(
-        //     'data' => array(
-        //       'from_account'    => $fromAccount,
-        //       'to_account'      => $toAccount,
-        //       'amount'  => $amount,
-        //       'currency' => $currency,
-        //       'notes'   => $notes,
-        //       'charge'  => $charge,
-        //       'transfer_status' => 'completed',
-        //       'topic'   => 'payments-'.$toAccount['id']
-        //     ),
-        //     'notification' => array(
-        //       'title' => 'Payment Notification',
-        //       'body'  => 'Payment accepted by '.$fromAccount['email'],
-        //       'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
-        //     ),
-        //     'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
-        //   )
-        // );
+        app($this->firebaseController)->sendLocal(
+          array(
+            'data' => array(
+              'from_account'    => $fromAccount,
+              'to_account'      => $toAccount,
+              'amount'  => $amount,
+              'currency' => $currency,
+              'notes'   => $notes,
+              'charge'  => $charge,
+              'transfer_status' => 'completed',
+              'topic'   => 'payments-'.$toAccount['id']
+            ),
+            'notification' => array(
+              'title' => 'Payment Notification',
+              'body'  => 'Payment accepted by '.$fromAccount['email'],
+              'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
+            ),
+            'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
+          )
+        );
       }
 
       if($result['error'] != null){
@@ -621,7 +621,6 @@ class LedgerController extends APIController
             $subject = 'Transfer';
             $mode = 'direct_transfer';
             app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
-            // app('App\Http\Controllers\EmailController')->transfer_fund_receiver($receive['id'], $entry, $subject, $owner['id'], $mode);
           }else{
             $subject = 'Payment';
             $mode = 'scan_payment';
