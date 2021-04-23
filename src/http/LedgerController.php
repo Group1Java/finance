@@ -445,7 +445,7 @@ class LedgerController extends APIController
         "code" => $this->generateCode(),
         "account_id" => $fromAccount["id"],
         "account_code" => $fromAccount["code"],
-        "description" => 'Direct Transfer'.($notes != null ? ':'.$notes : null),
+        "description" => $payload == 'direct_transfer' ? 'Direct Transfer'.($notes != null ? ':'.$notes : null) : 'Scan Payment'.($notes != null ? ':'.$notes : null),
         "currency" => $currency,
         "amount" => $amount * -1,
         "from"   => $toAccount['id']
@@ -463,7 +463,7 @@ class LedgerController extends APIController
         "code" => $this->generateCode(),
         "account_id" => $toAccount["id"],
         "account_code" => $toAccount["code"],
-        "description" => 'Direct Transfer'.($notes != null ? ':'.$notes : null),
+        "description" => $payload == 'direct_transfer' ? 'Direct Transfer'.($notes != null ? ':'.$notes : null) : 'Scan Payment'.($notes != null ? ':'.$notes : null),
         "currency" => $currency,
         "amount" => $amount,
         "from"   => $fromAccount['id']
@@ -617,14 +617,15 @@ class LedgerController extends APIController
         if($this->response['data'] > 0){
           $owner = $this->retriveAccountDetailsByCode($entry["account_code"]);
           $receive = $this->retriveAccountDetailsByCode($entry["payment_payload_value"]);
+          $code = substr($entry['code'], 56);
           if($entry['payment_payload'] == "direct_transfer"){
             $subject = 'Transfer';
             $mode = 'direct_transfer';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
           }else{
             $subject = 'Payment';
             $mode = 'scan_payment';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
           }
           // run jobs here
           $parameter = array(
