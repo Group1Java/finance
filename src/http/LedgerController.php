@@ -620,11 +620,11 @@ class LedgerController extends APIController
           if($entry['payment_payload'] == "direct_transfer"){
             $subject = 'Transfer';
             $mode = 'direct_transfer';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
           }else{
             $subject = 'Payment';
             $mode = 'scan_payment';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $entry, $subject, $receive['id'], $mode);
+            app('App\Http\Controllers\EmailController')->transfer_fund_sender($receive['id'], $code, $entry, $subject, $owner['id'], $mode);
           }
           // run jobs here
           $parameter = array(
