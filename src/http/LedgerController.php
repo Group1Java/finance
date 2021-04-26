@@ -449,8 +449,15 @@ class LedgerController extends APIController
         "currency" => $currency,
         "amount" => $amount * -1,
         "from"   => $toAccount['id']
-      ));
+      ),
+        $flag = true
+      );
 
+      if($result['error'] != null){
+        $this->response['error'] = $result['error'];
+        $this->response['data'] = $result['data'];
+        return $this->response();
+      }
       
       $result = $this->addNewEntryDirectTransfer(array(
         "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
@@ -462,13 +469,10 @@ class LedgerController extends APIController
         "currency" => $currency,
         "amount" => $amount,
         "from"   => $fromAccount['id']
-      ));
+      ),
+        $flag = false
+    );
       
-      if($result['error'] != null){
-        $this->response['error'] = $result['error'];
-        $this->response['data'] = $result['data'];
-        return $this->response();
-      }
       
       if($payload == 'scan_payment'){
         app($this->firebaseController)->sendLocal(
@@ -594,7 +598,7 @@ class LedgerController extends APIController
     }
 
 
-    public function addNewEntryDirectTransfer($data){
+    public function addNewEntryDirectTransfer($data, $flag){
       $result = $this->verify($data);
       if($result){
         return array(
@@ -616,17 +620,19 @@ class LedgerController extends APIController
         $this->insertDB($entry);
 
         if($this->response['data'] > 0){
-          $owner = $this->retriveAccountDetailsByCode($entry["account_code"]);
-          $receive = $this->retriveAccountDetailsByCode($entry["payment_payload_value"]);
-          $code = substr($entry['code'], 56);
-          if($entry['payment_payload'] == "direct_transfer"){
-            $subject = 'Transfer';
-            $mode = 'direct_transfer';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
-          }else{
-            $subject = 'Payment';
-            $mode = 'scan_payment';
-            app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
+          if($flag == true){
+            $owner = $this->retriveAccountDetailsByCode($entry["account_code"]);
+            $receive = $this->retriveAccountDetailsByCode($entry["payment_payload_value"]);
+            $code = substr($entry['code'], 56);
+            if($entry['payment_payload'] == "direct_transfer"){
+              $subject = 'Transfer';
+              $mode = 'direct_transfer';
+              app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
+            }else{
+              $subject = 'Payment';
+              $mode = 'scan_payment';
+              app('App\Http\Controllers\EmailController')->transfer_fund_sender($owner['id'], $code, $entry, $subject, $receive['id'], $mode);
+            }
           }
           // run jobs here
           $parameter = array(
