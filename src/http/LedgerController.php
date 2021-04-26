@@ -143,7 +143,7 @@ class LedgerController extends APIController
       $result = Ledger::where('account_id', '=', $data['account_id'])
         ->where('account_code', '=', $data['account_code'])
         ->where('description', '=', $data['description'])
-        ->where('amount', '=', $data['amount'])
+        // ->where('amount', '=', $data['amount'])
         ->where('currency', '=', $data['currency'])
         ->where('payment_payload', '=', $data['payment_payload'])
         ->where('payment_payload_value', '=', $data['payment_payload_value'])
@@ -451,11 +451,6 @@ class LedgerController extends APIController
         "from"   => $toAccount['id']
       ));
 
-      if($result['error'] != null){
-        $this->response['error'] = $result['error'];
-        $this->response['data'] = $result['data'];
-        return $this->response();
-      }
       
       $result = $this->addNewEntryDirectTransfer(array(
         "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
@@ -468,7 +463,13 @@ class LedgerController extends APIController
         "amount" => $amount,
         "from"   => $fromAccount['id']
       ));
-
+      
+      if($result['error'] != null){
+        $this->response['error'] = $result['error'];
+        $this->response['data'] = $result['data'];
+        return $this->response();
+      }
+      
       if($payload == 'scan_payment'){
         app($this->firebaseController)->sendLocal(
           array(
@@ -605,7 +606,7 @@ class LedgerController extends APIController
         $entry = array();
         $entry["payment_payload"] = $data["payment_payload"];
         $entry["payment_payload_value"] = $data["payment_payload_value"];
-        $entry["code"] = $this->generateCode();
+        $entry["code"] = $data["code"];
         $entry["account_id"] = $data["account_id"];
         $entry["account_code"] = $data["account_code"];
         $entry["description"] = $data["description"];
