@@ -55,7 +55,7 @@ class FundTransferChargeController extends APIController
         $result = $this->response['data'];
         $i = 0;
         foreach ($result as $key) {
-          $result[$i]['type'] = $key['destination'];
+          // $result[$i]['type'] = $key['destination'];
           $result[$i]['max_amount'] = $key['maximum_amount'];
           $result[$i]['min_amount'] = $key['minimum_amount'];
           $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
