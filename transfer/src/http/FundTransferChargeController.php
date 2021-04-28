@@ -61,6 +61,8 @@ class FundTransferChargeController extends APIController
           $result[$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
           $i++;
         }
+        
+        $this->response['size'] = FundTransferCharge::where('deleted_at', '=', null)->count();
         $this->response['data'] = $result;
         return $this->response(); 
       // }

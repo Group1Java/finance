@@ -368,9 +368,17 @@ class LedgerController extends APIController
       ->limit((isset($data['limit']) ? $data['limit'] : 5))
       ->orderBy('created_at', 'desc')
       ->get();
-      return $transactions;
+      $i = 0;
+      foreach ($transactions as $key) {
+        $transactions[$i]->created_at_human = Carbon::createFromFormat('Y-m-d H:i:s', $transactions[$i]->created_at)->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
+        $i++;
+      }
+      
+      $this->response['size'] = Ledger::where('deleted_at', '=', null)->count();
+      $this->response['data'] = $transactions;
+      return $this->response();
     }
-
+     
     public function directTransfer(Request $request){
       $data = $request->all();
 
