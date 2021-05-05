@@ -371,9 +371,10 @@ class LedgerController extends APIController
       $i = 0;
       foreach ($transactions as $key) {
         $transactions[$i]->created_at_human = Carbon::createFromFormat('Y-m-d H:i:s', $transactions[$i]->created_at)->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
+        $transactions[$i]->receiver = $this->retriveAccountDetailsByCode($transactions[$i]->payment_payload_value);
+        $transactions[$i]->owner = $this->retriveAccountDetailsByCode($transactions[$i]->account_code);
         $i++;
       }
-      
       $this->response['size'] = Ledger::where('deleted_at', '=', null)->count();
       $this->response['data'] = $transactions;
       return $this->response();
