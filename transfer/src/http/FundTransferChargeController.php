@@ -13,7 +13,7 @@ class FundTransferChargeController extends APIController
     function __construct(){
         $this->model = new FundTransferCharge();
         $this->notRequired = array(
-          'effective_date', 'scope'
+          'effective_date', 'scope', 'type'
         );
     }
 
