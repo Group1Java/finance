@@ -39,6 +39,7 @@ class FundTransferChargeController extends APIController
           'minimum_amount' => $data['minimum_amount'],
           'maximum_amount' => $data['maximum_amount'],
           'destination' => $data['destination'],
+          'type' => $data['type'],
           'scope' => $data['scope'],
           'effective_date' => $data['effective_date']
         );
