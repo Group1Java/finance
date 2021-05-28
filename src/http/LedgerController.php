@@ -484,7 +484,7 @@ class LedgerController extends APIController
       
       
       if($payload == 'scan_payment'){
-        app($this->firebaseController)->sendLocal(
+        app($this->firebaseController)->sendNew(
           array(
             'data' => array(
               'from_account'    => $fromAccount,
@@ -501,7 +501,7 @@ class LedgerController extends APIController
               'body'  => 'Payment accepted by '.$fromAccount['email'],
               'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
             ),
-            'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
+            'topic'   => 'Payhiram-'.$toAccount['id']
           )
         );
       }
@@ -581,7 +581,7 @@ class LedgerController extends APIController
         return $this->response();       
       }
 
-      app($this->firebaseController)->sendLocal(
+      app($this->firebaseController)->sendNew(
         array(
           'data' => array(
             'from_account'    => $fromAccount,
@@ -598,7 +598,7 @@ class LedgerController extends APIController
             'body'  => 'Accept payments from '.$fromEmail,
             'imageUrl' => env('DOMAIN').'increment/v1/storage/logo/logo.png'
           ),
-          'topic'   => env('TOPIC').'Payments-'.$toAccount['id']
+          'topic'   => 'Payhiram-'.$toAccount['id']
         )
       );
       $this->response['data'] = true;
