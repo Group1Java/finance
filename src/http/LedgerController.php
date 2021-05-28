@@ -366,6 +366,7 @@ class LedgerController extends APIController
       $data = $request->all();
       $transactions = Ledger::select("ledgers.*")
       ->limit((isset($data['limit']) ? $data['limit'] : 5))
+      ->offset((isset($data['offset']) ? $data['offset'] : 5))
       ->orderBy('created_at', 'desc')
       ->get();
       $i = 0;
