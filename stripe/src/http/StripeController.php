@@ -1,11 +1,10 @@
 <?php
 
-namespace Increment\Finance\Http;
+namespace Increment\Finance\Stripe\Http;
 
 use Illuminate\Http\Request;
-use Luigel\Paymongo\Facades\Paymongo;
 use App\Http\Controllers\APIController;
-use Increment\Finance\Models\Stripe;
+use Increment\Finance\Stripe\Models\Stripe;
 
 
 class StripeController extends APIController
@@ -22,8 +21,8 @@ class StripeController extends APIController
       $keys = $data['payment_keys'];
       $message = $data['message'];
       $accountId = $data['account_id'];
-      $pk = ($keys['flag'] == false || $keys['flag'] == 'false') ? $keys['stripe']['dev_pk'] : $keys['stripe']['live_pk'];
-      $sk = ($keys['flag'] == false  || $keys['flag'] == 'false') ? $keys['stripe']['dev_sk'] : $keys['stripe']['live_sk'];
+      $pk = $keys['stripe']['STRIPE_PK'];
+      $sk = $keys['stripe']['STRIPE_SK'];
       $stripe = new StripeWebhooks($pk, $sk);
       $subscription = StripeSubscription::where('account_id', '=', $accountId)->first();
       if($subscription){
