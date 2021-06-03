@@ -1,0 +1,24 @@
+{
+    "name": "increment/finance/stripe",
+    "description": "Stripe API",
+    "authors": [
+        {
+            "name": "Kennette Canales",
+            "email": "kennettecanales@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Increment\\Finance\\Stripe": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Increment\\Finance\\Stripe\\StripeServiceProvider"
+            ]
+        }
+    }
+}
