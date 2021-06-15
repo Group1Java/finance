@@ -401,7 +401,6 @@ class LedgerController extends APIController
      
     public function directTransfer(Request $request){
       $data = $request->all();
-
       $from = $data['from'];
       $to = $data['to'];
       $amount = floatval($data['amount']);
@@ -416,17 +415,33 @@ class LedgerController extends APIController
       $toEmail = $to['email'];
       $toCode = $to['code'];
 
+
       if($fromEmail == null || $fromCode == null || $toEmail == null || $toCode == null){
         $this->response['data'] = null;
         $this->response['error'] = 'Invalid Details';
         return $this->response();
       }
+      
+      if($fromEmail == $toEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Transaction: The same account.';
+        return $this->response();
+      }
+
 
       if($amount == null || ($amount & $amount <= 0) || $currency == null){
         $this->response['data'] = null;
         $this->response['error'] = 'Invalid Details';
         return $this->response();        
       }
+
+      
+      if($fromEmail == $toEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Transaction: The same account.';
+        return $this->response();
+      }
+
 
       // from account details
       $fromAccount = $this->retriveAccountDetailsByCode($fromCode);
