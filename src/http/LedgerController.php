@@ -512,7 +512,8 @@ class LedgerController extends APIController
               'notes'   => $notes,
               'charge'  => $charge,
               'transfer_status' => 'completed',
-              'topic'   => 'Payhiram-'.$toAccount['id']
+              'topic'   => 'Payhiram-'.$toAccount['id'],
+              'payload' => 'payments'
             ),
             'notification' => array(
               'title' => 'Payment Notification',
@@ -609,7 +610,8 @@ class LedgerController extends APIController
             'notes'   => $notes,
             'charge'  => $charge,
             'transfer_status' => 'requesting',
-            'topic'   => 'Payhiram-'.$toAccount['id']
+            'topic'   => 'Payhiram-'.$toAccount['id'],
+            'payload' => 'payments'
           ),
           'notification' => array(
             'title' => 'Payment Notification',
