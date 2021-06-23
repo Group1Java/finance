@@ -459,7 +459,6 @@ class LedgerController extends APIController
       }
       
       $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
-      
       if($fromBalance < $amount){
         $this->response['data'] = null;
         $this->response['error'] = 'Insufficient Balance!';
@@ -593,7 +592,6 @@ class LedgerController extends APIController
       }
       
       $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
-      
       if($fromBalance < $amount){
         $this->response['data'] = null;
         $this->response['error'] = 'Insufficient Balance!';
