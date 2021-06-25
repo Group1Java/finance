@@ -502,11 +502,19 @@ class LedgerController extends APIController
     }
 
     $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
-    if ($fromBalance < $amount) {
-      $this->response['data'] = null;
-      $this->response['error'] = 'Insufficient Balance!';
-      return $this->response();
-    }
+
+      if($fromAccount != null && $fromAccount['email'] != $fromEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Sender Account!';
+        return $this->response();       
+      }
+      
+      $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
+      if($fromBalance < $amount){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Insufficient Balance!';
+        return $this->response();  
+      }
 
 
     // to account details
@@ -559,79 +567,6 @@ class LedgerController extends APIController
       $flag = false
     );
 
-      if($result['error'] != null){
-        $this->response['error'] = $result['error'];
-        $this->response['data'] = $result['data'];
-        return $this->response();
-      }
-
-      if($result['error'] == null){
-        $this->response['error'] = null;
-        $this->response['data'] = true;
-        return $this->response();
-      }
-    }
-
-    public function acceptPaymentConfirmation(Request $request){
-      $data = $request->all();
-
-      $from = $data['from_code'];
-      $fromEmail = $data['from_email'];
-      $to = $data['to_code'];
-      $toEmail = $data['to_email'];
-      $amount = floatval($data['amount']);
-      $currency = $data['currency'];
-      $notes = $data['notes'];
-      $charge = isset($data['charge']) ? $data['charge'] : 0;
-
-      if($from == null || $to == null){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Invalid Details';
-        return $this->response();
-      }
-
-      if($amount == null || ($amount & $amount <= 0) || $currency == null){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Invalid Details';
-        return $this->response();        
-      }
-
-      // from account details
-      $fromAccount = $this->retriveAccountDetailsByCode($from);
-
-      if($fromAccount == null){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Sender Account was not found!';
-        return $this->response();       
-      }
-
-      if($fromAccount != null && $fromAccount['email'] != $fromEmail){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Invalid Sender Account!';
-        return $this->response();       
-      }
-      
-      $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
-      if($fromBalance < $amount){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Insufficient Balance!';
-        return $this->response();  
-      }
-
-
-      // to account details
-      $toAccount = $this->retriveAccountDetailsByCode($to);
-      if($toAccount == null){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Receiver Account was not found!';
-        return $this->response();       
-      }
-
-      if($toAccount != null && $toAccount['email'] != $toEmail){
-        $this->response['data'] = null;
-        $this->response['error'] = 'Invalid Receiver Account!';
-        return $this->response();       
-      }
 
     if ($payload == 'scan_payment') {
       app($this->firebaseController)->sendNew(
