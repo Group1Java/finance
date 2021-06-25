@@ -503,11 +503,18 @@ class LedgerController extends APIController
 
     $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
 
-    if ($fromBalance < $amount) {
-      $this->response['data'] = null;
-      $this->response['error'] = 'Insufficient Balance!';
-      return $this->response();
-    }
+      if($fromAccount != null && $fromAccount['email'] != $fromEmail){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Invalid Sender Account!';
+        return $this->response();       
+      }
+      
+      $fromBalance = $this->retrievePersonal($fromAccount['id'], $fromAccount['code'], $currency);
+      if($fromBalance < $amount){
+        $this->response['data'] = null;
+        $this->response['error'] = 'Insufficient Balance!';
+        return $this->response();  
+      }
 
 
     // to account details
