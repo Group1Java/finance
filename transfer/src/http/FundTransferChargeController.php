@@ -56,6 +56,8 @@ class FundTransferChargeController extends APIController
         $result = $this->response['data'];
         $i = 0;
         foreach ($result as $key) {
+          $temp = Carbon::parse($result[$i]['created_at']);
+          $result[$i]['created_at'] = $temp->format('Y-m-d H:i:s');
           // $result[$i]['type'] = $key['destination'];
           $result[$i]['max_amount'] = $key['maximum_amount'];
           $result[$i]['min_amount'] = $key['minimum_amount'];
