@@ -1,5 +1,5 @@
 <?php
-namespace Increment\Finance\Stripe;
+namespace Increment\Finance\Stripe\Models;
 use Stripe\Stripe;
 use Stripe\Charge;
 use Stripe\Product;
@@ -14,13 +14,10 @@ class StripeWebhooks{
 
     protected $pk;
     protected $sk;
-    protected $productId;
-
     function __construct($pk, $sk){
       $this->pk = $pk;
       $this->sk = $sk;
       Stripe::setApiKey($this->sk);
-      $this->productId = 'evt_1Ch8GqH1ThrfgwFeUGMqQXdZ';
     }
 
     public function createCustomer($email, $sourceId, $name){
