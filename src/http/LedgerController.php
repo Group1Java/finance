@@ -16,6 +16,7 @@ class LedgerController extends APIController
   public $accountClass = 'Increment\Account\Http\AccountController';
   public $notificationClass = 'Increment\Common\Notification\Http\NotificationController';
   public $firebaseController = '\App\Http\Controllers\FirebaseController';
+  public $payloadClass = 'Increment\Common\Payload\Http\PayloadController';
   function __construct()
   {
     $this->model = new Ledger();
@@ -83,8 +84,9 @@ class LedgerController extends APIController
   {
     $data = $request->all();
     $result = array();
-    foreach ($this->currency as $key) {
-      $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
+    $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
+    $this->AccountCurrency = app($this->payloadClass)->getCurrencyParams($account['id']);
+    foreach ($this->AccountCurrency as $key) {
       if ($account == null) {
         $this->response['error'] = 'Invalid Access';
         $this->response['data'] = null;
