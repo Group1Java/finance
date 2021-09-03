@@ -86,6 +86,7 @@ class LedgerController extends APIController
     $result = array();
     $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
     $this->AccountCurrency = app($this->payloadClass)->getCurrencyParams($account['id']);
+    // dd($this->AccountCurrency['data']);
     foreach ($this->AccountCurrency as $key) {
       if ($account == null) {
         $this->response['error'] = 'Invalid Access';
