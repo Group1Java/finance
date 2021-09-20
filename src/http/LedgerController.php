@@ -37,6 +37,19 @@ class LedgerController extends APIController
     }
   }
 
+  public function getAllCurrencies($accountId, $accountCode){
+    $currencies = Ledger::select('currency')->where('account_code', '=', $accountCode)->where('account_id', '=', $accountId)->orderBy('currency', 'ASC')->groupBy('currency')->get();
+    if($currencies){
+      $response = [];
+      foreach ($currencies as $key => $value) {
+        $response[] = $value;
+      }
+      return $response;
+    }else{
+      return array('PHP');
+    }
+  }
+
   public function dashboard(Request $request)
   {
     $data = $request->all();
@@ -47,7 +60,8 @@ class LedgerController extends APIController
       $this->response['data'] = null;
       return $this->response();
     }
-    foreach ($this->currency as $key) {
+    $currencies = $this->getAllCurrencies($data['account_id'], $data['account_code']);
+    foreach ($this->currencies as $key) {
       $sum = $this->getSum($account['id'], $account['code'], $key);
       $hold = $this->getPendingAmount($account['id'], $key);
       $currency = array(
@@ -85,9 +99,8 @@ class LedgerController extends APIController
     $data = $request->all();
     $result = array();
     $account = app($this->accountClass)->getAccountIdByParamsWithColumns($data['account_code'], ['id', 'code']);
-    $this->AccountCurrency = app($this->payloadClass)->getCurrencyParams($account['id']);
-    // dd($this->AccountCurrency['data']);
-    foreach ($this->AccountCurrency as $key) {
+    $currencies = $this->getAllCurrencies($data['account_id'], $data['account_code']);
+    foreach ($currencies as $key) {
       if ($account == null) {
         $this->response['error'] = 'Invalid Access';
         $this->response['data'] = null;
