@@ -42,7 +42,7 @@ class LedgerController extends APIController
     if($currencies){
       $response = [];
       foreach ($currencies as $key => $value) {
-        $response[] = $value;
+        $response[] = $value['currency'];
       }
       return $response;
     }else{
