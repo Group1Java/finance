@@ -570,10 +570,9 @@ class LedgerController extends APIController
         "currency" => $currency,
         "amount" => $amount * -1,
         "from"   => $toAccount['id']
-      ),
-      $flag = true
+      )
     );
-    
+
 
     $resultReceiver = $this->addNewEntryDirectTransfer(
       array(
@@ -595,8 +594,7 @@ class LedgerController extends APIController
         "currency" => $currency,
         "amount" => $amount,
         "from"   => $fromAccount['id']
-      ),
-      $flag = false
+      )
     );
 
     if ($resultSender['error'] != null) {
@@ -604,7 +602,8 @@ class LedgerController extends APIController
       $this->response['data'] = $result['data'];
       return $this->response();
     }else{
-      $this->sendNotification($resultSender['data'], $resultSender['details'], $resultSender['entry']);
+      $this->sendNotification($resultSender['data'], $resultSender['details'], $resultSender['entry'],
+      true);
     }
 
     if ($payload == 'scan_payment') {
@@ -640,7 +639,7 @@ class LedgerController extends APIController
     if ($resultReceiver['error'] == null) {
       $this->response['error'] = null;
       $this->response['data'] = true;
-      $this->sendNotification($resultReceiver['data'], $resultReceiver['details'], $resultReceiver['entry']);
+      $this->sendNotification($resultReceiver['data'], $resultReceiver['details'], $resultReceiver['entry'], false);
       return $this->response();
     }
   }
@@ -736,7 +735,7 @@ class LedgerController extends APIController
 
 
 
-  public function sendNotification($ledgerId, $details, $entry){
+  public function sendNotification($ledgerId, $details, $entry, $flag){
     try{
       if ($ledgerId > 0) {
         if ($flag == true) {
@@ -768,7 +767,7 @@ class LedgerController extends APIController
       //
     }
   }
-  public function addNewEntryDirectTransfer($data, $flag)
+  public function addNewEntryDirectTransfer($data)
   {
     $result = $this->verify($data);
     if ($result) {
