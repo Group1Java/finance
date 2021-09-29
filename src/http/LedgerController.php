@@ -753,6 +753,7 @@ class LedgerController extends APIController
       $this->model = new Ledger();
       $this->insertDB($entry);
       $entry['payment_payload_value'] = $data['payment_payload_value'];
+      $entry['payment_payload'] = $data['payment_payload'];
 
       if ($this->response['data'] > 0) {
         if ($flag == true) {
