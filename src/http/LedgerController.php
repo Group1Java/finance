@@ -169,7 +169,7 @@ class LedgerController extends APIController
     $result = Ledger::where('account_id', '=', $data['account_id'])
       ->where('account_code', '=', $data['account_code'])
       ->where('description', '=', $data['description'])
-      // ->where('amount', '=', $data['amount'])
+      ->where('amount', '=', $data['amount'])
       ->where('currency', '=', $data['details'])
       ->where('details', '=', $data['currency'])
       ->orderBy('created_at', 'desc')
