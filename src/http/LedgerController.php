@@ -550,7 +550,7 @@ class LedgerController extends APIController
       return $this->response();
     }
 
-    $result = $this->addNewEntryDirectTransfer(
+    $resultSender = $this->addNewEntryDirectTransfer(
       array(
         "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
         "payment_payload_value" => $toAccount['code'],
@@ -573,14 +573,9 @@ class LedgerController extends APIController
       ),
       $flag = true
     );
+    
 
-    if ($result['error'] != null) {
-      $this->response['error'] = $result['error'];
-      $this->response['data'] = $result['data'];
-      return $this->response();
-    }
-
-    $result = $this->addNewEntryDirectTransfer(
+    $resultReceiver = $this->addNewEntryDirectTransfer(
       array(
         "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
         "payment_payload_value" => $fromAccount['code'],
@@ -604,6 +599,13 @@ class LedgerController extends APIController
       $flag = false
     );
 
+    if ($resultSender['error'] != null) {
+      $this->response['error'] = $result['error'];
+      $this->response['data'] = $result['data'];
+      return $this->response();
+    }else{
+      $this->sendNotification($resultSender['data'], $resultSender['details'], $resultSender['entry']);
+    }
 
     if ($payload == 'scan_payment') {
       app($this->firebaseController)->sendNew(
@@ -629,15 +631,16 @@ class LedgerController extends APIController
       );
     }
 
-    if ($result['error'] != null) {
+    if ($resultReceiver['error'] != null) {
       $this->response['error'] = $result['error'];
       $this->response['data'] = $result['data'];
       return $this->response();
     }
 
-    if ($result['error'] == null) {
+    if ($resultReceiver['error'] == null) {
       $this->response['error'] = null;
       $this->response['data'] = true;
+      $this->sendNotification($resultReceiver['data'], $resultReceiver['details'], $resultReceiver['entry']);
       return $this->response();
     }
   }
@@ -732,30 +735,10 @@ class LedgerController extends APIController
   }
 
 
-  public function addNewEntryDirectTransfer($data, $flag)
-  {
-    $result = $this->verify($data);
-    if ($result) {
-      return array(
-        'error' => 'Duplicate Entry',
-        'data'  => null
-      );
-    } else {
-      $amount = $data['amount'];
-      $entry = array();
-      $entry["code"] = $data["code"];
-      $entry['details'] = $data['details'];
-      $entry["account_id"] = $data["account_id"];
-      $entry["account_code"] = $data["account_code"];
-      $entry["description"] = $data["description"];
-      $entry["currency"] = $data["currency"];
-      $entry["amount"] = $amount;
-      $this->model = new Ledger();
-      $this->insertDB($entry);
-      $entry['payment_payload_value'] = $data['payment_payload_value'];
-      $entry['payment_payload'] = $data['payment_payload'];
 
-      if ($this->response['data'] > 0) {
+  public function sendNotification($ledgerId, $details, $entry){
+    try{
+      if ($ledgerId > 0) {
         if ($flag == true) {
           $owner = $this->retriveAccountDetailsByCode($entry["account_code"]);
           $receive = $this->retriveAccountDetailsByCode($entry["payment_payload_value"]);
@@ -772,17 +755,48 @@ class LedgerController extends APIController
         }
         // run jobs here
         $parameter = array(
-          'from'    => $data['from'],
-          'to'      => $data['account_id'],
-          'payload' => $data["description"],
+          'from'    => $details['from'],
+          'to'      => $details['account_id'],
+          'payload' => $details["description"],
           'payload_value' => $entry["code"],
           'route'   => 'ledger/' . $entry["code"],
           'created_at'  => Carbon::now()
         );
         app($this->notificationClass)->createByParams($parameter);
       }
+    }catch(Exception $error){
+      //
+    }
+  }
+  public function addNewEntryDirectTransfer($data, $flag)
+  {
+    $result = $this->verify($data);
+    if ($result) {
+      return array(
+        'error' => 'Duplicate Entry',
+        'data'  => null
+      );
+
+    } else {
+      $amount = $data['amount'];
+      $entry = array();
+      $entry["code"] = $data["code"];
+      $entry['details'] = $data['details'];
+      $entry["account_id"] = $data["account_id"];
+      $entry["account_code"] = $data["account_code"];
+      $entry["description"] = $data["description"];
+      $entry["currency"] = $data["currency"];
+      $entry["amount"] = $amount;
+      $this->model = new Ledger();
+      $this->insertDB($entry);
+      $entry['payment_payload_value'] = $data['payment_payload_value'];
+      $entry['payment_payload'] = $data['payment_payload'];
+
+      
       return array(
         'data' => $this->response['data'],
+        'entry' => $entry,
+        'details' => $data,
         'error' => null
       );
     }
