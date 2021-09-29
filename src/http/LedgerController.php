@@ -73,7 +73,7 @@ class LedgerController extends APIController
       $result[] = $currency;
     }
 
-    $history = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at', 'payment_payload_value')
+    $history = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'details', 'created_at')
       ->where('account_id', '=', $account['id'])
       ->where('account_code', '=', $account['code'])
       ->offset(0)
@@ -314,7 +314,7 @@ class LedgerController extends APIController
       $this->response['data'] = null;
       return $this->response();
     } else {
-      $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'created_at', 'payment_payload_value')
+      $result = Ledger::select('code', 'account_code', 'amount', 'description', 'currency', 'details', 'created_at')
         ->where('account_id', '=', $account['id'])
         ->where('account_code', '=', $account['code'])
         ->offset(isset($data['offset']) ? $data['offset'] : 0)
@@ -393,7 +393,7 @@ class LedgerController extends APIController
     $data = $request->all();
     $ledger = DB::table("ledgers")
       ->where('account_id', '=', $data['account_id'])
-      ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'payment_payload', 'payment_payload_value', 'created_at')
+      ->select('code', 'account_id', 'account_code', 'amount', 'description', 'currency', 'details', 'created_at')
       ->orderBy('created_at', 'desc')
       ->offset($data['offset'])
       ->limit($data['limit'])
