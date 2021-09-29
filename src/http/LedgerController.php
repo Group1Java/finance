@@ -150,12 +150,13 @@ class LedgerController extends APIController
   {
     $amount = Checkout::select("total")->where("id", $data["checkout_id"])->get();
     $entry = array();
-    $entry["payment_payload"] = $data["payment_payload"];
-    $entry["payment_payload_value"] = $data["payment_payload_value"];
+    // $entry["payment_payload"] = $data["payment_payload"];
+    // $entry["payment_payload_value"] = $data["payment_payload_value"];
     $entry["code"] = $this->generateCode();
     $entry["account_id"] = $data["account_id"];
     $entry["account_code"] = $data["account_code"];
     $entry["description"] = $data["status"];
+    $entry["details"] = $data["details"];
     $entry["currency"] = $data["currency"];
     $entry["amount"] = $amount[0]["total"];
     $this->model = new Ledger();
@@ -169,9 +170,8 @@ class LedgerController extends APIController
       ->where('account_code', '=', $data['account_code'])
       ->where('description', '=', $data['description'])
       // ->where('amount', '=', $data['amount'])
-      ->where('currency', '=', $data['currency'])
-      ->where('payment_payload', '=', $data['payment_payload'])
-      ->where('payment_payload_value', '=', $data['payment_payload_value'])
+      ->where('currency', '=', $data['details'])
+      ->where('details', '=', $data['currency'])
       ->orderBy('created_at', 'desc')
       ->limit(1)
       ->get();
@@ -201,12 +201,13 @@ class LedgerController extends APIController
     } else {
       $amount = $data['amount'];
       $entry = array();
-      $entry["payment_payload"] = $data["payment_payload"];
-      $entry["payment_payload_value"] = $data["payment_payload_value"];
+      // $entry["payment_payload"] = $data["payment_payload"];
+      // $entry["payment_payload_value"] = $data["payment_payload_value"];
       $entry["code"] = $this->generateCode();
       $entry["account_id"] = $data["account_id"];
       $entry["account_code"] = $data["account_code"];
       $entry["description"] = $data["description"];
+      $entry["details"] = $data["details"];
       $entry["currency"] = $data["currency"];
       $entry["amount"] = $amount;
       $this->model = new Ledger();
@@ -262,26 +263,28 @@ class LedgerController extends APIController
 
       $entry = [];
       $entry[] = array(
-        "payment_payload" => $data["payment_payload"],
-        "payment_payload_value" => $data["payment_payload_value"],
+        // "payment_payload" => $data["payment_payload"],
+        // "payment_payload_value" => $data["payment_payload_value"],
         "code" => $this->generateCode(),
         "account_id" => $data["account_id"],
         "account_code" => $data["account_code"],
         "description" => $data["description"],
         "currency" => $data["currency"],
         "amount" => $amount,
+        'details' => $data['details'],
         'created_at' => Carbon::now()
       );
 
       if ($data['type'] == 'AUTOMATIC') {
         $entry[] = array(
-          "payment_payload" => $data["payment_payload"],
-          "payment_payload_value" => $data["payment_payload_value"],
+          // "payment_payload" => $data["payment_payload"],
+          // "payment_payload_value" => $data["payment_payload_value"],
           "code" => $this->generateCode(),
           "account_id" => $data["from_account_id"],
           "account_code" => $data["from_account_code"],
           "description" => $data['from_description'],
           "currency" => $data["currency"],
+          'details' => $data['details'],
           "amount" => $amount * (-1),
           'created_at' => Carbon::now()
         );
@@ -549,8 +552,17 @@ class LedgerController extends APIController
 
     $result = $this->addNewEntryDirectTransfer(
       array(
-        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
-        "payment_payload_value" => $toAccount['code'],
+        // "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+        // "payment_payload_value" => $toAccount['code'],
+        'details' => json_encode(array(
+          "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+          "payment_payload_value" => $toAccount['code'],
+          "account" => array(
+            'account_id' => $toAccount['id'],
+            'account_code' => $toAccount['code'],
+          ),
+          "type" => 'send'
+        )),
         "code" => $this->generateCode(),
         "account_id" => $fromAccount["id"],
         "account_code" => $fromAccount["code"],
@@ -570,8 +582,17 @@ class LedgerController extends APIController
 
     $result = $this->addNewEntryDirectTransfer(
       array(
-        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
-        "payment_payload_value" => $fromAccount['code'],
+        // "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+        // "payment_payload_value" => $fromAccount['code'],
+        'details' => json_encode(array(
+          "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+          "payment_payload_value" => $fromAccount['code'],
+          "account" => array(
+            'account_id' => $fromAccount['id'],
+            'account_code' => $fromAccount['code']
+          ),
+          "type" => 'receive'
+        )),
         "code" => $this->generateCode(),
         "account_id" => $toAccount["id"],
         "account_code" => $toAccount["code"],
@@ -722,9 +743,8 @@ class LedgerController extends APIController
     } else {
       $amount = $data['amount'];
       $entry = array();
-      $entry["payment_payload"] = $data["payment_payload"];
-      $entry["payment_payload_value"] = $data["payment_payload_value"];
       $entry["code"] = $data["code"];
+      $entry['details'] = $data['details'];
       $entry["account_id"] = $data["account_id"];
       $entry["account_code"] = $data["account_code"];
       $entry["description"] = $data["description"];
