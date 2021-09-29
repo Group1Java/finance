@@ -552,14 +552,14 @@ class LedgerController extends APIController
 
     $result = $this->addNewEntryDirectTransfer(
       array(
-        // "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
-        // "payment_payload_value" => $toAccount['code'],
+        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+        "payment_payload_value" => $toAccount['code'],
         'details' => json_encode(array(
           "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
           "payment_payload_value" => $toAccount['code'],
           "account" => array(
-            'account_id' => $toAccount['id'],
-            'account_code' => $toAccount['code'],
+            'id' => $toAccount['id'],
+            'code' => $toAccount['code'],
           ),
           "type" => 'send'
         )),
@@ -582,14 +582,14 @@ class LedgerController extends APIController
 
     $result = $this->addNewEntryDirectTransfer(
       array(
-        // "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
-        // "payment_payload_value" => $fromAccount['code'],
+        "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
+        "payment_payload_value" => $fromAccount['code'],
         'details' => json_encode(array(
           "payment_payload" => $payload == 'direct_transfer' ? 'direct_transfer' : 'scan_payment',
           "payment_payload_value" => $fromAccount['code'],
           "account" => array(
-            'account_id' => $fromAccount['id'],
-            'account_code' => $fromAccount['code']
+            'id' => $fromAccount['id'],
+            'code' => $fromAccount['code']
           ),
           "type" => 'receive'
         )),
