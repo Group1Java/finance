@@ -1,17 +1,23 @@
 <?php
-// Finances
-// Ledger Controller
-$route = env('PACKAGE_ROUTE', '').'/ledger/';
-$controller = 'Increment\Finance\Http\LedgerController@';
-Route::post($route.'summary_ledger', $controller."summaryLedger");
-Route::post($route.'history', $controller."history");
-Route::post($route.'summary', $controller."summary");
-Route::post($route.'dashboard', $controller."dashboard");
-Route::post($route.'direct_transfer', $controller."directTransfer");
-Route::post($route.'transfer', $controller."transfer");
-Route::post($route.'accept_payment_confirmation', $controller."acceptPaymentConfirmation");
-Route::post($route.'transaction_history', $controller."transactionHistory");
 
+
+use App\Http\Middleware\EnsureTokenIsValid;
+
+// $route = env('PACKAGE_ROUTE', '');
+Route::middleware(EnsureTokenIsValid::class)->group(function () {
+    // Finances
+    // Ledger Controller
+    $route = env('PACKAGE_ROUTE', '').'/ledger/';
+    $controller = 'Increment\Finance\Http\LedgerController@';
+    Route::post($route.'summary_ledger', $controller."summaryLedger");
+    Route::post($route.'history', $controller."history");
+    Route::post($route.'summary', $controller."summary");
+    Route::post($route.'dashboard', $controller."dashboard");
+    Route::post($route.'direct_transfer', $controller."directTransfer");
+    Route::post($route.'transfer', $controller."transfer");
+    Route::post($route.'accept_payment_confirmation', $controller."acceptPaymentConfirmation");
+    Route::post($route.'transaction_history', $controller."transactionHistory");
+});
 
 
 // Cash Payment Controller
